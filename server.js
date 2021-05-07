@@ -4,8 +4,8 @@ const bodyParser = require("body-parser");
 const db = require("./src/config/db");
 var cors = require("cors");
 var portfinder = require("portfinder");
-const dotenv = require('dotenv');
-dotenv.config();
+// const dotenv = require('dotenv');
+// dotenv.config();
 const app = express();
 
 app.use(bodyParser.urlencoded({ extended: true }), cors());
