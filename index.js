@@ -1,7 +1,6 @@
 const express = require("express");
 const MongoClient = require("mongodb").MongoClient;
 const bodyParser = require("body-parser");
-const db = require("./src/config/db");
 var cors = require("cors");
 var portfinder = require("portfinder");
 const dotenv = require('dotenv');
