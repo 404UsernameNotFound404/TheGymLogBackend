@@ -116,21 +116,107 @@ module.exports = function(app, db) {
             });
         }
     });
-    app.post("/addworkout", async (req, res) => {
-        const workout = {
-            title: "2025-07-24",
-            exercises: [
-                { name: "name", reps: "10", sets: "3" },
-                { name: "name", reps: "10", sets: "3" }
-            ],
-            username: req.body.username
-        };
-        workoutData.insertOne(workout, (err, results) => {
+    app.post("/workout", async (req, res) => {
+        const decoded = await jwt.verify(
+            req.body.token,
+            JWT_KEY,
+            (err, decoded) => {
+                if (err) {
+                    res.status(401);
+                    res.send("Auth failed");
+                    console.log("Auth failed");
+                } else {
+                    const { body } = req;
+                    const workout = {
+                        title: body.title,
+                        exercises: body.exercises,
+                        username: decoded.username,
+                        date: {
+                            year: body.date.year,
+                            month: body.date.month,
+                            day: body.date.day
+                        }
+                    };
+                    workoutData
+                        .find({ username: decoded.username })
+                        .toArray((err, results) => {
+                            if (results.length < 20) {
+                                workoutData.insertOne(
+                                    workout,
+                                    (err, results) => {
+                                        if (err) {
+                                            console.log(error);
+                                            res.status(401);
+                                            res.send({
+                                                message:
+                                                    "Could not delete workout"
+                                            });
+                                        } else {
+                                            res.send(results);
+                                        }
+                                    }
+                                );
+                            }
+                        });
+                }
+            }
+        );
+    });
+    app.delete("/workout", async (req, res) => {
+        console.log("delete");
+        try {
+            const decoded = await jwt.verify(req.body.token, JWT_KEY);
+            console.log(decoded);
+            const details = {
+                _id: new OBjectID(req.body.id),
+                username: decoded.username
+            };
+            console.log(details);
+            workoutData.deleteOne(details, (err, item) => {
+                if (err) {
+                    console.log(err + "error");
+                } else {
+                    console.log("succes");
+                    console.log(item);
+                    res.send("success");
+                }
+            });
+        } catch (error) {
+            console.log(error);
+            res.status(401);
+            res.send({ message: "Could not delete workout" });
+        }
+    });
+    app.put("/workout", (req, res) => {
+        const { body } = req;
+        jwt.verify(req.body.token, JWT_KEY, (err, decoded) => {
             if (err) {
-                console.log(err);
-                res.send({ err: "an error has occured" });
+                res.status(420);
+                res.send("Auth failed at err decpded");
             } else {
-                res.send(results.ops[0]);
+                const filter = { _id: new OBjectID(body.id) };
+                const updatedWorkout = {
+                    $set: {
+                        title: body.title,
+                        exercises: body.exercises,
+                        username: decoded.username,
+                        date: {
+                            year: body.date.year,
+                            month: body.date.month,
+                            day: body.date.day
+                        }
+                    }
+                };
+                console.log(filter);
+                workoutData.updateOne(filter, updatedWorkout, (err, item) => {
+                    if (err) {
+                        console.log(err);
+                        res.status(401);
+                        res.send("Auth Failed");
+                    } else {
+                        res.send(`Updated: ${item}`);
+                    }
+                });
             }
         });
     });

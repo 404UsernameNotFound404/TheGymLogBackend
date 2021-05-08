@@ -9,6 +9,10 @@ const app = express();
 
 app.use(bodyParser.urlencoded({ extended: true }), cors());
 
+// app.use(bodyParser.urlencoded());
+
+app.use(bodyParser.json());
+
 console.log(process.env.DB_URL);
 console.log(process.env.PORT);
 MongoClient.connect(process.env.DB_URL, { useNewUrlParser: true }, (err, database) => {
